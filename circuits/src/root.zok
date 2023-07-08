@@ -1,0 +1,33 @@
+from "./rng.zok" import getCards;
+
+from "./hand" import HandInfo, CommonCards, HoleCards, RevealCard;
+from "./player" import Player, verifySignature;
+from "./rng" import shuffle;
+
+def main(
+    u64 gameId, 
+    u32[8] commitedR1,
+    u32 R1,
+    u32 R2,
+    Player[9] players,
+    RevealCard[52] revealCards
+) -> bool {
+    bool mut ret = true;
+
+    // Check signatures
+    u32[8] mut hash = [0; 8];
+    for u32 i in 0..9 {
+        ret = ret && verifySignature(players[i]);
+    }
+
+    // Shuffle cards
+    u32[52] cards = getCards(R1, R2);
+
+    // Check integrity of revealCards
+    for u32 i in 0..52 {
+        // ret = ret && (!revealCards[i].reveal || revealCards[i].card == cards[i]);
+        assert(!revealCards[i].reveal || revealCards[i].card == cards[i]);
+    }
+
+    return ret;
+}

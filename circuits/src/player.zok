@@ -1,0 +1,35 @@
+import "hashes/pedersen/512bit" as pedersenHash;
+
+from "./hand" import HandInfo, CommonCards, HoleCards, RevealCard;
+import "./verifySignature" as v;
+
+struct Action {
+    u32 actionType; // commit / fold
+    u32 token; // which token
+}
+
+struct Signature {
+    field[2] R;
+    field S;
+    field[2] A;
+    u32[8] M0;
+    u32[8] M1;
+}
+
+struct Player {
+    bool seated;
+    HoleCards holeCards;
+    Action a;
+    Signature s;
+}
+
+def hashAction(Action a) -> u32[8] {
+    u32[16] mut preimage = [0; 16];
+
+    return pedersenHash(preimage);
+}
+
+def verifySignature(Player p) -> bool {
+    return !p.seated;
+    // || v(p.s.R, p.s.S, p.s.A, p.s.M0, p.s.M1);
+}

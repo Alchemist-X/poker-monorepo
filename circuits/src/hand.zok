@@ -1,0 +1,168 @@
+// const handNames = {
+//     HIGH_CARD       : 0,
+//     PAIR            : 1,
+//     TWO_PAIR,       : 2,
+//     SET,            : 3,
+//     STRAIGHT,       : 4,
+//     FLUSH,          : 5,
+//     FULL_HOUSE,     : 6,
+//     FOUR_OF_A_KIND, : 7,
+//     STRAIGHT_FLUSH, : 8,
+// }
+
+struct CommonCards {
+    u8[5] cards;
+}
+
+struct HoleCards {
+    u8[2] cards;
+}
+
+struct RevealCard {
+    bool reveal;
+    u32 card;
+}
+
+struct HandInfo {
+    u8 handType;
+    u32 handStrength;
+}
+
+def getStraightFlush(u8[7] hands) -> HandInfo {
+    return HandInfo {
+        handType: 0,
+        handStrength: 0
+    };
+}
+
+def getFourOfAKind(u8[7] hands) -> HandInfo {
+    return HandInfo {
+        handType: 0,
+        handStrength: 0
+    };
+}
+
+def getFullHouse(u8[7] hands) -> HandInfo {
+    return HandInfo {
+        handType: 0,
+        handStrength: 0
+    };
+}
+
+def getFlush(u8[7] hands) -> HandInfo {
+    return HandInfo {
+        handType: 0,
+        handStrength: 0
+    };
+}
+
+def getStraight(u8[7] hands) -> HandInfo {
+    return HandInfo {
+        handType: 0,
+        handStrength: 0
+    };
+}
+
+def getSet(u8[7] hands) -> HandInfo {
+    return HandInfo {
+        handType: 0,
+        handStrength: 0
+    };
+}
+
+def getTwoPair(u8[7] hands) -> HandInfo {
+    return HandInfo {
+        handType: 0,
+        handStrength: 0
+    };
+}
+
+def getPair(u8[7] hands) -> HandInfo {
+    return HandInfo {
+        handType: 0,
+        handStrength: 0
+    };
+}
+
+def getHighCard(u8[7] hands) -> HandInfo {
+    return HandInfo {
+        handType: 0,
+        handStrength: 0
+    };
+}
+
+def getHand(u8[7] hands) -> HandInfo {
+    // 0. Assert that the cards are sorted from high to low
+    for u32 i in 0..6 {
+        assert(hands[i] > hands[i+1]);
+    }
+
+    HandInfo[9] mut h = [HandInfo {
+        handType: 0,
+        handStrength: 0
+    }; 10];
+
+    h[8] = getStraightFlush(hands);
+    h[7] = getFourOfAKind(hands);
+    h[6] = getFullHouse(hands);
+    h[5] = getFlush(hands);
+    h[4] = getStraight(hands);
+    h[3] = getSet(hands);
+    h[2] = getTwoPair(hands);
+    h[1] = getPair(hands);
+    h[0] = getHighCard(hands);
+    
+    return if h[8].handType == 8 {
+        h[8]
+    } else {
+        if h[7].handType == 7 {
+            h[7]
+        } else {
+            if h[6].handType == 6 {
+                h[6]
+            } else {
+                if h[5].handType == 5 {
+                    h[5]
+                } else {
+                    if h[4].handType == 4 {
+                        h[4]
+                    } else {
+                        if h[3].handType == 3 {
+                            h[3]
+                        } else {
+                            if h[2].handType == 2 {
+                                h[2]
+                            } else {
+                                if h[1].handType == 1 {
+                                    h[1]
+                                } else {
+                                    h[0]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+}
+
+def compareHand(HandInfo a, HandInfo b) -> u8 {
+    return if a.handType == b.handType {
+        if a.handStrength < b.handStrength {
+            0
+        } else {
+            if a.handStrength == b.handStrength {
+                1
+            } else {
+                2
+            }
+        }
+    } else {
+        if a.handType < b.handType {
+            0
+        } else {
+            2
+        }
+    };
+}

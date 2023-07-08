@@ -1,0 +1,21 @@
+{
+  "inputs": [
+    {
+      "name": "R1",
+      "public": true,
+      "type": "u32"
+    },
+    {
+      "name": "R2",
+      "public": true,
+      "type": "u32"
+    }
+  ],
+  "output": {
+    "type": "array",
+    "components": {
+      "size": 52,
+      "type": "u32"
+    }
+  }
+}
