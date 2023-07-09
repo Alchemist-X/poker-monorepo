@@ -1,11 +1,11 @@
-from "./rng.zok" import getCards;
-
-from "./hand" import HandInfo, CommonCards, HoleCards, RevealCard;
+import "./hand" as getHand;
+from "./hand" import HandInfo, CommonCards, RevealCard;
+from "./cardUtils" import assertIsSorted7;
 from "./player" import Player, verifySignature;
-from "./rng" import shuffle;
+import "./rng" as getCards;
 
 def main(
-    u64 gameId, 
+    u64 gameId,
     u32[8] commitedR1,
     u32 R1,
     u32 R2,
@@ -17,7 +17,7 @@ def main(
     // Check signatures
     u32[8] mut hash = [0; 8];
     for u32 i in 0..9 {
-        ret = ret && verifySignature(players[i]);
+        assert(verifySignature(players[i]));
     }
 
     // Shuffle cards
@@ -27,6 +27,19 @@ def main(
     for u32 i in 0..52 {
         // ret = ret && (!revealCards[i].reveal || revealCards[i].card == cards[i]);
         assert(!revealCards[i].reveal || revealCards[i].card == cards[i]);
+    }
+
+    // Check integrity of sorted7Cards
+    for u32 i in 0..9 {
+        u32[7] sorted7Cards = players[i].sorted7Cards;
+        u32[7] any7Cards = [cards[i], cards[i + 9], cards[18 + 0], cards[18 + 1], cards[18 + 2], cards[18 + 3], cards[18 + 4]];
+        bool unused = assertIsSorted7(any7Cards, sorted7Cards);
+    }
+
+    // Get the hand strength of each player
+    HandInfo[9] infos = [HandInfo{ handType: 0, handStrength: 0 }; 9];
+    for u32 i in 0..9 {
+        HandInfo h = getHand(players[i].sorted7Cards, players[i].hint);
     }
 
     return ret;

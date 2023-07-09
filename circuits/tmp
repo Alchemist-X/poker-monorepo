@@ -1,8 +1,0 @@
-
-> compile
-> cd circuits && zokrates compile -i src/root.zok
-
-Compiling src/root.zok
-
-Compiled code written to 'out'
-Number of constraints: 38988

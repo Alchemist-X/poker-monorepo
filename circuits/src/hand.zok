@@ -1,3 +1,5 @@
+from "./cardUtils" import exist7, exist7all4, getAces, assertIsSorted7;
+
 // const handNames = {
 //     HIGH_CARD       : 0,
 //     PAIR            : 1,
@@ -11,11 +13,7 @@
 // }
 
 struct CommonCards {
-    u8[5] cards;
-}
-
-struct HoleCards {
-    u8[2] cards;
+    u32[5] cards;
 }
 
 struct RevealCard {
@@ -24,119 +22,442 @@ struct RevealCard {
 }
 
 struct HandInfo {
-    u8 handType;
+    u32 handType;
     u32 handStrength;
 }
 
-def getStraightFlush(u8[7] hands) -> HandInfo {
-    return HandInfo {
-        handType: 0,
-        handStrength: 0
-    };
+def isStraightFlush(u32[7] cards) -> bool {
+    bool mut exist = false;
+
+    for u32 i in 0..3 {
+        u32 highIndex = cards[i];
+        exist = exist
+            || exist7all4(cards, [highIndex - 4, highIndex - 8, highIndex - 12, highIndex - 16])
+            || exist7all4(cards, [highIndex - 36, highIndex - 40, highIndex - 44, highIndex - 48]);
+    }
+
+    return exist;
 }
 
-def getFourOfAKind(u8[7] hands) -> HandInfo {
-    return HandInfo {
-        handType: 0,
-        handStrength: 0
-    };
+def isFourOfAKind(u32[7] cards) -> bool {
+    return cards[0] / 4 == cards[3] / 4 
+        || cards[1] / 4 == cards[4] / 4
+        || cards[2] / 4 == cards[5] / 4
+        || cards[3] / 4 == cards[6] / 4;
 }
 
-def getFullHouse(u8[7] hands) -> HandInfo {
-    return HandInfo {
-        handType: 0,
-        handStrength: 0
-    };
+def isFullHouse(u32[7] cards) -> bool {
+    return cards[0] / 4 == cards[2] / 4 && (cards[3] / 4 == cards[4] / 4 || cards[4] / 4 == cards[5] / 4 || cards[5] / 4 == cards[6] / 4)
+        || cards[1] / 4 == cards[3] / 4 && (cards[4] / 4 == cards[5] / 4 || cards[5] / 4 == cards[6] / 4)
+        || cards[2] / 4 == cards[4] / 4 && (cards[0] / 4 == cards[1] / 4 || cards[5] / 4 == cards[6] / 4)
+        || cards[3] / 4 == cards[5] / 4 && (cards[0] / 4 == cards[1] / 4 || cards[1] / 4 == cards[2] / 4)
+        || cards[4] / 4 == cards[6] / 4 && (cards[0] / 4 == cards[1] / 4 || cards[1] / 4 == cards[2] / 4 || cards[2] / 4 == cards[3] / 4);
 }
 
-def getFlush(u8[7] hands) -> HandInfo {
-    return HandInfo {
-        handType: 0,
-        handStrength: 0
-    };
+def isFlush(u32[7] cards) -> bool {
+    return cards[0] % 4 == cards[1] % 4 && cards[0] % 4 == cards[2] % 4 && cards[0] % 4 == cards[3] % 4 && cards[0] % 4 == cards[4] % 4
+        || cards[0] % 4 == cards[1] % 4 && cards[0] % 4 == cards[2] % 4 && cards[0] % 4 == cards[3] % 4 && cards[0] % 4 == cards[5] % 4
+        || cards[0] % 4 == cards[1] % 4 && cards[0] % 4 == cards[2] % 4 && cards[0] % 4 == cards[3] % 4 && cards[0] % 4 == cards[6] % 4
+        || cards[0] % 4 == cards[1] % 4 && cards[0] % 4 == cards[2] % 4 && cards[0] % 4 == cards[4] % 4 && cards[0] % 4 == cards[5] % 4
+        || cards[0] % 4 == cards[1] % 4 && cards[0] % 4 == cards[2] % 4 && cards[0] % 4 == cards[4] % 4 && cards[0] % 4 == cards[6] % 4
+        || cards[0] % 4 == cards[1] % 4 && cards[0] % 4 == cards[2] % 4 && cards[0] % 4 == cards[5] % 4 && cards[0] % 4 == cards[6] % 4
+        || cards[0] % 4 == cards[1] % 4 && cards[0] % 4 == cards[3] % 4 && cards[0] % 4 == cards[4] % 4 && cards[0] % 4 == cards[5] % 4
+        || cards[0] % 4 == cards[1] % 4 && cards[0] % 4 == cards[3] % 4 && cards[0] % 4 == cards[4] % 4 && cards[0] % 4 == cards[6] % 4
+        || cards[0] % 4 == cards[1] % 4 && cards[0] % 4 == cards[3] % 4 && cards[0] % 4 == cards[5] % 4 && cards[0] % 4 == cards[6] % 4
+        || cards[0] % 4 == cards[1] % 4 && cards[0] % 4 == cards[4] % 4 && cards[0] % 4 == cards[5] % 4 && cards[0] % 4 == cards[6] % 4
+        || cards[0] % 4 == cards[2] % 4 && cards[0] % 4 == cards[3] % 4 && cards[0] % 4 == cards[4] % 4 && cards[0] % 4 == cards[5] % 4
+        || cards[0] % 4 == cards[2] % 4 && cards[0] % 4 == cards[3] % 4 && cards[0] % 4 == cards[4] % 4 && cards[0] % 4 == cards[6] % 4
+        || cards[0] % 4 == cards[2] % 4 && cards[0] % 4 == cards[3] % 4 && cards[0] % 4 == cards[5] % 4 && cards[0] % 4 == cards[6] % 4
+        || cards[0] % 4 == cards[2] % 4 && cards[0] % 4 == cards[4] % 4 && cards[0] % 4 == cards[5] % 4 && cards[0] % 4 == cards[6] % 4
+        || cards[0] % 4 == cards[3] % 4 && cards[0] % 4 == cards[4] % 4 && cards[0] % 4 == cards[5] % 4 && cards[0] % 4 == cards[6] % 4
+        || cards[1] % 4 == cards[2] % 4 && cards[1] % 4 == cards[3] % 4 && cards[1] % 4 == cards[4] % 4 && cards[1] % 4 == cards[5] % 4
+        || cards[1] % 4 == cards[2] % 4 && cards[1] % 4 == cards[3] % 4 && cards[1] % 4 == cards[4] % 4 && cards[1] % 4 == cards[6] % 4
+        || cards[1] % 4 == cards[2] % 4 && cards[1] % 4 == cards[3] % 4 && cards[1] % 4 == cards[5] % 4 && cards[1] % 4 == cards[6] % 4
+        || cards[1] % 4 == cards[2] % 4 && cards[1] % 4 == cards[4] % 4 && cards[1] % 4 == cards[5] % 4 && cards[1] % 4 == cards[6] % 4
+        || cards[1] % 4 == cards[3] % 4 && cards[1] % 4 == cards[4] % 4 && cards[1] % 4 == cards[5] % 4 && cards[1] % 4 == cards[6] % 4
+        || cards[2] % 4 == cards[3] % 4 && cards[2] % 4 == cards[4] % 4 && cards[2] % 4 == cards[5] % 4 && cards[2] % 4 == cards[6] % 4;
 }
 
-def getStraight(u8[7] hands) -> HandInfo {
-    return HandInfo {
-        handType: 0,
-        handStrength: 0
-    };
+def isStraight(u32[7] cards) -> bool {
+    u32[7] mut ranks = [0; 7];
+    for u32 i in 0..7 {
+        ranks[i] = cards[i] / 4;
+    }
+
+    bool mut exist = false;
+    for u32 i in 0..3 {
+        u32 highIndex = ranks[i];
+        exist = exist
+            || exist7all4(ranks, [highIndex - 1, highIndex - 2, highIndex - 3, highIndex - 4])
+            || exist7all4(ranks, [highIndex - 9, highIndex - 10, highIndex - 11, highIndex - 12]);
+    }
+
+    return exist;
 }
 
-def getSet(u8[7] hands) -> HandInfo {
-    return HandInfo {
-        handType: 0,
-        handStrength: 0
-    };
+def isSet(u32[7] cards) -> bool {
+    return cards[0] / 4 == cards[2] / 4
+        || cards[1] / 4 == cards[3] / 4
+        || cards[2] / 4 == cards[4] / 4
+        || cards[3] / 4 == cards[5] / 4
+        || cards[4] / 4 == cards[6] / 4;
 }
 
-def getTwoPair(u8[7] hands) -> HandInfo {
-    return HandInfo {
-        handType: 0,
-        handStrength: 0
-    };
+def isTwoPair(u32[7] cards) -> bool {
+    return cards[0] / 4 == cards[1] / 4 && cards[2] / 4 == cards[3] / 4
+        || cards[0] / 4 == cards[1] / 4 && cards[3] / 4 == cards[4] / 4
+        || cards[0] / 4 == cards[1] / 4 && cards[4] / 4 == cards[5] / 4
+        || cards[0] / 4 == cards[1] / 4 && cards[5] / 4 == cards[6] / 4
+        || cards[1] / 4 == cards[2] / 4 && cards[3] / 4 == cards[4] / 4
+        || cards[1] / 4 == cards[2] / 4 && cards[4] / 4 == cards[5] / 4
+        || cards[1] / 4 == cards[2] / 4 && cards[5] / 4 == cards[6] / 4
+        || cards[2] / 4 == cards[3] / 4 && cards[4] / 4 == cards[5] / 4
+        || cards[2] / 4 == cards[3] / 4 && cards[5] / 4 == cards[6] / 4
+        || cards[3] / 4 == cards[4] / 4 && cards[5] / 4 == cards[6] / 4;
 }
 
-def getPair(u8[7] hands) -> HandInfo {
-    return HandInfo {
-        handType: 0,
-        handStrength: 0
-    };
+def isPair(u32[7] cards) -> bool {
+    return cards[0] / 4 == cards[1] / 4
+        || cards[1] / 4 == cards[2] / 4
+        || cards[2] / 4 == cards[3] / 4
+        || cards[3] / 4 == cards[4] / 4
+        || cards[4] / 4 == cards[5] / 4
+        || cards[5] / 4 == cards[6] / 4;
 }
 
-def getHighCard(u8[7] hands) -> HandInfo {
-    return HandInfo {
-        handType: 0,
-        handStrength: 0
-    };
+def isHighCard(u32[7] cards) -> bool {
+    return true;
 }
 
-def getHand(u8[7] hands) -> HandInfo {
+def getStraightFlush(u32[7] hands, u32[5] hint, bool valid) -> u32 {
+    // indeed straight flush
+    assert(!valid
+        || (hint[0] == hint[1] + 4 && hint[0] == hint[2] + 8 && hint[0] == hint[3] + 12 && hint[0] == hint[4] + 16) 
+        || (hint[0] == hint[1] + 36 && hint[0] == hint[2] + 40 && hint[0] == hint[3] + 44 && hint[0] == hint[4] + 48));
+    
+    // no better straight flush
+    assert(!valid || !exist7(hands, hint[0] + 4));
+
+    return hint[0] / 4;
+}
+
+
+def getFourOfAKind(u32[7] hands, u32[5] hint, bool valid) -> u32 {
+    // indeed four of a kind
+    assert(!valid || (hint[0] / 4 == hint[3] / 4 || hint[1] / 4 == hint[4] / 4));
+
+    // no better four of a kind
+    u32 hint4 = if hint[0] / 4 == hint[1] / 4 {
+        hint[0]
+    } else {
+        hint[4]
+    };
+    u32 hint1 = hint[0] ^ hint[4] ^ hint4;
+
+    assert(!valid || hands[0] == hint4 && hands[4] == hint1 || hands[0] == hint1);
+
+    return (hint4 / 4) * 16u32 + (hint1 / 4);
+}
+
+def getFullHouse(u32[7] hands, u32[5] hint, bool valid) -> u32 {
+    // indeed full house
+    u32[5] mut hintRanks = [0; 5];
+    for u32 i in 0..5 {
+        hintRanks[i] = hint[i] / 4;
+    }
+
+    assert(!valid || (hintRanks[0] == hintRanks[2] && hintRanks[3] == hintRanks[4] || hintRanks[0] == hintRanks[1] && hintRanks[2] == hintRanks[4]));
+
+    // no better full house
+    u32 r1 = if hintRanks[0] == hintRanks[2] {
+        hintRanks[0]
+    } else {
+        hintRanks[2]
+    };
+    u32 r2 = if hintRanks[0] == hintRanks[2] {
+        hintRanks[3]
+    } else {
+        hintRanks[0]
+    };
+
+    u32[7] mut handRanks = [0; 7];
+    for u32 i in 0..7 {
+        handRanks[i] = hands[i] / 4;
+    }
+
+    for u32 i in 0..5 {
+        assert(!valid || !(handRanks[i] == handRanks[i + 1] && handRanks[i] == handRanks[i + 2]) || handRanks[i] <= r1);
+    }
+
+    for u32 i in 0..6 {
+        assert(!valid || !(handRanks[i] == handRanks[i + 1]) || handRanks[i] == r1 || handRanks[i] <= r2);
+    }
+
+    return r1 * 16u32 + r2;
+}
+
+def getFlush(u32[7] hands, u32[5] hint, bool valid) -> u32 {
+    u32 suit = hint[0] % 4;
+    // indeed flush
+    assert(!valid || (hint[0] % 4 == hint[1] % 4 && hint[0] % 4 == hint[2] % 4 && hint[0] % 4 == hint[3] % 4 && hint[0] % 4 == hint[4] % 4));
+
+    // no better flush
+    for u32 i in 0..7 {
+        assert(!valid || hands[i] % 4 != suit || hands[i] <= hint[0]);
+    }
+
+    return hint[0] / 4;
+}
+
+def getStraight(u32[7] hands, u32[5] hint, bool valid) -> u32 {
+    // indeed straight
+    u32[5] mut ranks = [0; 5];
+    for u32 i in 0..5 {
+        ranks[i] = hint[i] / 4;
+    }
+    assert(!valid 
+        || (ranks[0] == ranks[1] + 1 && ranks[0] == ranks[2] + 2 && ranks[0] == ranks[3] + 3 && ranks[0] == ranks[4] + 4)
+        || (ranks[0] == ranks[1] + 9 && ranks[0] == ranks[2] + 10 && ranks[0] == ranks[3] + 11 && ranks[0] == ranks[4] + 12));
+
+    // no better straight
+    u32 notAllowedRank = if ranks[0] == 12 {
+        if ranks[1] == 11 {
+            13 // already highest straight, no notAllowed cards
+        } else {
+            4
+        }
+    } else {
+        ranks[0] + 1
+    };
+
+    for u32 i in 0..7 {
+        assert(!valid || hands[i] / 4 != notAllowedRank);
+    }
+    
+    return notAllowedRank - 1;
+}
+
+def getSet(u32[7] hands, u32[5] hint, bool valid) -> u32 {
+    // indeed set
+    u32[5] mut ranks = [0; 5];
+    for u32 i in 0..5 {
+        ranks[i] = hint[i] / 4;
+    }
+    assert(!valid || (ranks[0] == ranks[2] || ranks[1] == ranks[3] || ranks[2] == ranks[4]));
+
+    // no better set
+    u32 kicker1 = if ranks[0] == ranks[1] {
+        hint[3]
+    } else {
+        hint[0]
+    };
+    u32 kicker2 = if ranks[0] == ranks[1] {
+        hint[4]
+    } else {
+        if ranks[1] == ranks[2] {
+            hint[4]
+        } else {
+            hint[1]
+        }
+    };
+
+    assert(!valid 
+        || (hands[0] / 4 == hands[2] / 4 && kicker1 == hands[3] && kicker2 == hands[4])
+        || (hands[1] / 4 == hands[3] / 4 && kicker1 == hands[0] && kicker2 == hands[4])
+        || (kicker1 == hands[0] && kicker2 == hands[1]));
+
+    return (kicker1 / 4) * 16u32 + (kicker2 / 4);
+}
+
+def getTwoPair(u32[7] hands, u32[5] hint, bool valid) -> u32 {
+    // indeed two pair
+    assert(!valid
+        || (hint[0] / 4 == hint[1] / 4 && hint[2] / 4 == hint[3] / 4)
+        || (hint[0] / 4 == hint[1] / 4 && hint[3] / 4 == hint[4] / 4)
+        || (hint[1] / 4 == hint[2] / 4 && hint[3] / 4 == hint[4] / 4));
+    
+    // no better two pair
+    u32 r1 = hint[1] / 4;
+    u32 r2 = hint[3] / 4;
+    u32 r3 = if hint[0] / 4 == hint[1] / 4 && hint[2] / 4 == hint[3] / 4 {
+        hint[4] / 4
+    } else {
+        if hint[0] / 4 == hint[1] / 4 && hint[3] / 4 == hint[4] / 4 {
+            hint[2] / 4
+        } else {
+            hint[0] / 4
+        }
+    };
+
+    // no pair > r2 && != r1
+    u32[7] mut handRanks = [0; 7];
+    for u32 i in 0..7 {
+        handRanks[i] = hands[i] / 4;
+    }
+    for u32 i in 0..6 {
+        assert(!valid || (!(handRanks[i] == handRanks[i + 1]) || !(handRanks[i] > r2 && handRanks[i] != r1)));
+    }
+    // no better kicker
+    u32 handKicker = if handRanks[0] != r1 {
+        handRanks[0]
+    } else {
+        if handRanks[2] != r2 {
+            handRanks[2]
+        } else {
+            handRanks[4]
+        }
+    };
+    assert(!valid || r3 == handKicker);
+
+    return r1 * 256u32 + r2 * 16u32 + r3;
+}
+
+def getPair(u32[7] hands, u32[5] hint, bool valid) -> u32 {
+    // indeed pair
+    u32[5] mut hintRanks = [0; 5];
+    for u32 i in 0..5 {
+        hintRanks[i] = hint[i] / 4;
+    }
+
+    assert(!valid || hintRanks[0] == hintRanks[1] || hintRanks[1] == hintRanks[2] || hintRanks[2] == hintRanks[3] || hintRanks[3] == hintRanks[4]);
+
+    // no better pair
+    u32 r1 = if hintRanks[0] == hintRanks[1] || hintRanks[1] == hintRanks[2] {
+        hintRanks[1]
+    } else {
+        hintRanks[3]
+    };
+    u32 r2 = if hintRanks[0] == hintRanks[1] {
+        hintRanks[2]
+    } else {
+        hintRanks[0]
+    };
+    u32 r3 = if hintRanks[0] == hintRanks[1] || hintRanks[1] == hintRanks[2] {
+        hintRanks[3]
+    } else {
+        hintRanks[1]
+    };
+    u32 r4 = if hintRanks[0] == hintRanks[1] || hintRanks[1] == hintRanks[2] || hintRanks[2] == hintRanks[3] {
+        hintRanks[4]
+    } else {
+        hintRanks[2]
+    };
+    // no pair > r1
+    u32[7] mut handRanks = [0; 7];
+    for u32 i in 0..7 {
+        handRanks[i] = hands[i] / 4;
+    }
+    for u32 i in 0..6 {
+        assert(!valid || (!(handRanks[i] == handRanks[i + 1]) || !(handRanks[i] > r1)));
+    }
+    // kickers are correct
+    assert(!valid || r2 == if handRanks[0] == handRanks[1] {
+        handRanks[2]
+    } else {
+        handRanks[0]
+    });
+    assert(!valid || r3 == if handRanks[0] == handRanks[1] || handRanks[1] == handRanks[2] {
+        handRanks[3]
+    } else {
+        handRanks[1]
+    });
+    assert(!valid || r4 == if handRanks[0] == handRanks[1] || handRanks[1] == handRanks[2] || handRanks[2] == handRanks[3] {
+        handRanks[4]
+    } else {
+        handRanks[2]
+    });
+
+    return r1 * 4096u32 + r2 * 256u32 + r3 * 16u32 + r4;
+}
+
+def getHighCard(u32[7] hands, u32[5] hint, bool valid) -> u32 {
+    // no better high card
+    assert(!valid || (hands[0] == hint[0] && hands[1] == hint[1] && hands[2] == hint[2] && hands[3] == hint[3] && hands[4] == hint[4]));
+
+    return (hint[0] / 4) * 65536u32 + (hint[1] / 4) * 4096u32 + (hint[2] / 4) * 256u32 + (hint[3] / 4) * 16u32 + (hint[4] / 4);
+}
+
+def main(u32[7] hands, u32[5] hint) -> HandInfo {
     // 0. Assert that the cards are sorted from high to low
     for u32 i in 0..6 {
         assert(hands[i] > hands[i+1]);
     }
 
-    HandInfo[9] mut h = [HandInfo {
-        handType: 0,
-        handStrength: 0
-    }; 10];
+    bool[9] mut isHand = [false; 9];
+    isHand[8] = isStraightFlush(hands);
+    isHand[7] = isFourOfAKind(hands);
+    isHand[6] = isFullHouse(hands);
+    isHand[5] = isFlush(hands);
+    isHand[4] = isStraight(hands);
+    isHand[3] = isSet(hands);
+    isHand[2] = isTwoPair(hands);
+    isHand[1] = isPair(hands);
+    isHand[0] = isHighCard(hands);
 
-    h[8] = getStraightFlush(hands);
-    h[7] = getFourOfAKind(hands);
-    h[6] = getFullHouse(hands);
-    h[5] = getFlush(hands);
-    h[4] = getStraight(hands);
-    h[3] = getSet(hands);
-    h[2] = getTwoPair(hands);
-    h[1] = getPair(hands);
-    h[0] = getHighCard(hands);
+    u32[9] mut handStrength = [0; 9];
+    handStrength[8] = getStraightFlush(hands, hint, isHand[8]);
+    handStrength[7] = getFourOfAKind(hands, hint, !isHand[8] && isHand[7]);
+    handStrength[6] = getFullHouse(hands, hint, !isHand[8] && !isHand[7] && isHand[6]);
+    handStrength[5] = getFlush(hands, hint, !isHand[8] && !isHand[7] && !isHand[6] && isHand[5]);
+    handStrength[4] = getStraight(hands, hint, !isHand[8] && !isHand[7] && !isHand[6] && !isHand[5] && isHand[4]);
+    handStrength[3] = getSet(hands, hint, !isHand[8] && !isHand[7] && !isHand[6] && !isHand[5] && !isHand[4] && isHand[3]);
+    handStrength[2] = getTwoPair(hands, hint, !isHand[8] && !isHand[7] && !isHand[6] && !isHand[5] && !isHand[4] && !isHand[3] && isHand[2]);
+    handStrength[1] = getPair(hands, hint, !isHand[8] && !isHand[7] && !isHand[6] && !isHand[5] && !isHand[4] && !isHand[3] && !isHand[2] && isHand[1]);
+    handStrength[0] = getHighCard(hands, hint, !isHand[8] && !isHand[7] && !isHand[6] && !isHand[5] && !isHand[4] && !isHand[3] && !isHand[2] && !isHand[1] && isHand[0]);
+
     
-    return if h[8].handType == 8 {
-        h[8]
+    return if isHand[8] {
+        HandInfo {
+            handType: 8,
+            handStrength: handStrength[8]
+        }
     } else {
-        if h[7].handType == 7 {
-            h[7]
+        if isHand[7] {
+            HandInfo {
+                handType: 7,
+                handStrength: handStrength[7]
+            }
         } else {
-            if h[6].handType == 6 {
-                h[6]
+            if isHand[6] {
+                HandInfo {
+                    handType: 6,
+                    handStrength: handStrength[6]
+                }
             } else {
-                if h[5].handType == 5 {
-                    h[5]
+                if isHand[5] {
+                    HandInfo {
+                        handType: 5,
+                        handStrength: handStrength[5]
+                    }
                 } else {
-                    if h[4].handType == 4 {
-                        h[4]
+                    if isHand[4] {
+                        HandInfo {
+                            handType: 4,
+                            handStrength: handStrength[4]
+                        }
                     } else {
-                        if h[3].handType == 3 {
-                            h[3]
+                        if isHand[3] {
+                            HandInfo {
+                                handType: 3,
+                                handStrength: handStrength[3]
+                            }
                         } else {
-                            if h[2].handType == 2 {
-                                h[2]
+                            if isHand[2] {
+                                HandInfo {
+                                    handType: 2,
+                                    handStrength: handStrength[2]
+                                }
                             } else {
-                                if h[1].handType == 1 {
-                                    h[1]
+                                if isHand[1] {
+                                    HandInfo {
+                                        handType: 1,
+                                        handStrength: handStrength[1]
+                                    }
                                 } else {
-                                    h[0]
+                                    HandInfo {
+                                        handType: 0,
+                                        handStrength: handStrength[0]
+                                    }
                                 }
                             }
                         }
@@ -147,7 +468,7 @@ def getHand(u8[7] hands) -> HandInfo {
     };
 }
 
-def compareHand(HandInfo a, HandInfo b) -> u8 {
+def compareHand(HandInfo a, HandInfo b) -> u32 {
     return if a.handType == b.handType {
         if a.handStrength < b.handStrength {
             0
@@ -166,3 +487,4 @@ def compareHand(HandInfo a, HandInfo b) -> u8 {
         }
     };
 }
+

@@ -1,0 +1,52 @@
+def exist7(u32[7] cards, u32 query) -> bool {
+    return query == cards[0]
+        || query == cards[1]
+        || query == cards[2]
+        || query == cards[3]
+        || query == cards[4]
+        || query == cards[5]
+        || query == cards[6];
+}
+
+def exist7all4(u32[7] cards, u32[4] query) -> bool {
+    return exist7(cards, query[0])
+        && exist7(cards, query[1])
+        && exist7(cards, query[2])
+        && exist7(cards, query[3]);
+}
+
+def getAces(u32[7] sorted7) -> u32[4] {
+    u32[4] mut ret = [0; 4];
+    for u32 i in 0..4 {
+        ret[i] = if sorted7[i] >= 48 {
+            sorted7[i]
+        } else {
+            0
+        };
+    }
+
+    return ret;
+}
+
+def hasAce(u32[7] sorted7) -> bool {
+    return sorted7[0] >= 48;
+}
+
+def assertIsSorted7(u32[7] any7, u32[7] sorted7) -> bool {
+    for u32 i in 0..6 {
+        assert(sorted7[i] > sorted7[i + 1]);
+    }
+
+    for u32 i in 0..7 {
+        assert(sorted7[i] == any7[0]
+            || sorted7[i] == any7[1]
+            || sorted7[i] == any7[2]
+            || sorted7[i] == any7[3]
+            || sorted7[i] == any7[4]
+            || sorted7[i] == any7[5]
+            || sorted7[i] == any7[6]);
+    }
+
+    return true;
+}
+

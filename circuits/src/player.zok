@@ -1,6 +1,6 @@
 import "hashes/pedersen/512bit" as pedersenHash;
 
-from "./hand" import HandInfo, CommonCards, HoleCards, RevealCard;
+from "./hand" import HandInfo, CommonCards, RevealCard;
 import "./verifySignature" as v;
 
 struct Action {
@@ -18,7 +18,8 @@ struct Signature {
 
 struct Player {
     bool seated;
-    HoleCards holeCards;
+    u32[7] sorted7Cards;
+    u32[5] hint;
     Action a;
     Signature s;
 }

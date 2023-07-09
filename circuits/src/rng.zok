@@ -8,7 +8,7 @@ def next_rand(u32 mut seed) -> u32 {
   return seed;
 }
 
-def shuffle(u32 mut seed) -> u32[52] {
+def knuth_shuffle(u32 mut seed) -> u32[52] {
     u32[52] mut ret = [0; 52];
     for u32 i in 0..52 {
         ret[i] = i;
@@ -29,11 +29,67 @@ def shuffle(u32 mut seed) -> u32[52] {
     return ret;
 }
 
+def miller_shuffle(u32 inx, u32 mut seed) -> u32 {
+    u32 p1 = 24317;
+    u32 p2 = 32141;
+    u32 p3 = 63629;
+    u32 r1 = seed % 24575u32 + 1u32;
+    u32 r2 = (seed + r1) % p1;
+    u32 r3 = seed % p2;
+    u32 r4 = ((seed * 137u32) ^ r3) % p3;
+    u32 rx = ((seed / 52) ^ 137) % 52 + 1;
+    u32 rkey = ((seed / 2074) ^ 137) % 52 + 1;
+
+    u32[52] mut ret = [0; 52];
+
+    u32 mut si = (inx + seed) % 52;
+
+    si = if si % 3 == 0 {
+        (((si / 3) * p1 + r1) % ((52 + 2) / 3)) * 3
+    } else {
+        si
+    };
+
+    si = if si <= 26 {
+        26 - (si + r3) % (26 + 1)
+    } else {
+        si
+    };
+
+    si = if si % 2 == 0 {
+        (((si / 2) * p2 + r2) % ((52 + 1) / 2)) * 2
+    } else {
+        si
+    };
+
+    si = if si < 26 {
+        (si * p3 + r3) % 26
+    } else {
+        si
+    };
+
+    si = if (si ^ rx) < 52 {
+        si ^ rx
+    } else {
+        si
+    };
+    si = (si * p3 + r4) % 52;
+    si = if (si ^ rkey) < 52 {
+        si ^ rkey
+    } else {
+        si
+    };
+
+    return si;
+}
+
 def main(u32 R1, u32 R2) -> u32[52] {
     u32[16] prepareR1R2 = [R1, R2, R1, R2, R1, R2, R1, R2, R1, R2, R1, R2, R1, R2, R1, R2];
     u32[8] hashedR1R2 = pedersenHash(prepareR1R2);
 
-    u32[52] cards = shuffle(R1);
-
+    u32[52] mut cards = [0; 52];
+    for u32 i in 0..52 {
+        cards[i] = miller_shuffle(miller_shuffle(i, hashedR1R2[0]), hashedR1R2[1]);
+    }
     return cards;
 }
