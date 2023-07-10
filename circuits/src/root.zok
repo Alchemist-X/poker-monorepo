@@ -1,7 +1,7 @@
 import "./hand" as getHand;
 from "./hand" import HandInfo, CommonCards, RevealCard;
 from "./cardUtils" import assertIsSorted7;
-from "./player" import Player, verifySignature;
+from "./player" import Player, verifySignature, checkCoverIntegrity, checkWinAmountIntegrity;
 import "./rng" as getCards;
 
 def main(
@@ -33,14 +33,23 @@ def main(
     for u32 i in 0..9 {
         u32[7] sorted7Cards = players[i].sorted7Cards;
         u32[7] any7Cards = [cards[i], cards[i + 9], cards[18 + 0], cards[18 + 1], cards[18 + 2], cards[18 + 3], cards[18 + 4]];
-        bool unused = assertIsSorted7(any7Cards, sorted7Cards);
+        bool unused1 = assertIsSorted7(any7Cards, sorted7Cards);
     }
 
-    // Get the hand strength of each player
-    HandInfo[9] infos = [HandInfo{ handType: 0, handStrength: 0 }; 9];
+    // Check integrity of handinfo
     for u32 i in 0..9 {
-        HandInfo h = getHand(players[i].sorted7Cards, players[i].hint);
+        assert(players[i].handinfo == if players[i].seated && !players[i].a.fold {
+            getHand(players[i].sorted7Cards, players[i].hint)
+        } else {
+            HandInfo{ handType: 0, handStrength: 0 }
+        });
     }
+
+    // Check integrity of cover info
+    bool unused2 = checkCoverIntegrity(players);
+
+    // Check integrity of win amount
+    bool unused3 = checkWinAmountIntegrity(players);
 
     return ret;
 }

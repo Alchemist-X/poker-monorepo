@@ -1,10 +1,12 @@
 import "hashes/pedersen/512bit" as pedersenHash;
 
-from "./hand" import HandInfo, CommonCards, RevealCard;
+import "./hand" as getHand;
+from "./hand" import HandInfo, CommonCards, RevealCard, compareHand;
 import "./verifySignature" as v;
 
 struct Action {
-    u32 actionType; // commit / fold
+    bool fold;
+    u32 commited; // amount of bet
     u32 token; // which token
 }
 
@@ -18,14 +20,26 @@ struct Signature {
 
 struct Player {
     bool seated;
+
     u32[7] sorted7Cards;
     u32[5] hint;
+    HandInfo handinfo;
     Action a;
     Signature s;
+
+    // Relative hand strength
+    u32 strength;
+
+    u32 coveredPot;
+    bool[9] cover;
+    bool[9] covered;
+    u32 winAmount;
 }
 
 def hashAction(Action a) -> u32[8] {
     u32[16] mut preimage = [0; 16];
+    preimage[0] = a.commited;
+    preimage[1] = a.token;
 
     return pedersenHash(preimage);
 }
@@ -33,4 +47,75 @@ def hashAction(Action a) -> u32[8] {
 def verifySignature(Player p) -> bool {
     return !p.seated;
     // || v(p.s.R, p.s.S, p.s.A, p.s.M0, p.s.M1);
+}
+
+def comparePlayer(Player a, Player b) -> u32 {
+    return if !a.seated || !b.seated {
+        if !a.seated {
+            0
+        } else {
+            2
+        }
+    } else {
+        if a.a.fold || b.a.fold {
+            if a.a.fold {
+                0
+            } else {
+                2
+            }
+        } else {
+            compareHand(getHand(a.sorted7Cards, a.hint), getHand(b.sorted7Cards, b.hint))
+        }
+    };
+}
+
+def checkCoverIntegrity(Player[9] players) -> bool {
+    for u32 i in 0..9 {
+        bool[9] mut cover = [false; 9];
+        bool[9] mut covered = [false; 9];
+        u32 mut coveredPot = 0;
+
+        for u32 j in 0..9 {
+            cover[j] = players[j].a.commited <= players[i].a.commited;
+            covered[j] = players[j].a.commited >= players[i].a.commited;
+
+            assert(cover[j] == players[i].cover[j]);
+            assert(covered[j] == players[i].covered[j]);
+
+            coveredPot = coveredPot + if cover[j] {
+                players[j].a.commited
+            } else {
+                players[i].a.commited
+            };
+        }
+
+        assert(coveredPot == players[i].coveredPot);
+    }
+
+    return true;
+}
+
+def checkWinAmountIntegrity(Player[9] players) -> bool {
+    for u32 i in 0..9 {
+        u32 mut calculatedWinAmount = 0;
+
+        // Check coverees
+
+        // Check coverers
+        bool mut loseToCoverer = false;
+        for u32 j in 0..9 {
+            loseToCoverer = loseToCoverer || 
+                players[i].covered[j] && comparePlayer(players[i], players[j]) == 0;
+                // TODO preprocess
+        }
+        calculatedWinAmount = if loseToCoverer {
+            0
+        } else {
+            calculatedWinAmount
+        };
+
+        assert(calculatedWinAmount == players[i].winAmount);
+    }
+
+    return true;
 }
