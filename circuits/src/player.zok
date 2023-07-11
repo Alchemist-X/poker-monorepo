@@ -33,9 +33,10 @@ struct Player {
     u32 stackRank;
     // winner & choppers (when the players is not losing)
     // If stackRank = 4, then 0, 1, 2, 3 are shorter stacks and 5, 6, 7, 8 are longer stackes
-    // if winnerAndChoppers = [0, 0, 16, 5, "", 4, 4, 4, 4]
-    //                                ^  ^      ^  ^  ^  ^
-    //                             winner|----choppers---|
+
+    // if winnerAndChoppers = [0, 0, 16, 1, "0", 1, 1, 1, 1]
+    //                                ^  ^       ^  ^  ^  ^
+    //                             winner|----choppers----|
     // When calculating the win amount,
     // shoterWinnerCoveredPot = if hasShorterWinner {
     //     players[winner].coveredPot)
@@ -45,9 +46,12 @@ struct Player {
     // 1. chop0 = (chopper0.coveredPot - players[winner].coveredPot) / 5
     // 2. chop1 = (chopper1.coveredPot - chopper0.coveredPot) / 4
     // winAmount = chop0 + chop1
-    u32 shorterWinnerStackIndex; // 2
     bool hasShorterWinner;       // true
+    u32 shorterWinner;
     u32[9] winnerAndChoppers;
+    bool[9] chopJump;        // [0, 0, 0, 1, 0, 1, 0, 0, 0]
+    u32[9] lastSettledPot;   // [0, 0, 0, 0, 0, >0, 0, 0, 0]
+    u32[9] chopDivider;      // [0, 0, 0, 5, 0, 4, 0, 0, 0]
 
     u32 coveredPot;
     bool[9] cover; // TODO make use of playerIndexToStackRank
@@ -114,13 +118,123 @@ def checkCoverIntegrity(Player[9] players) -> bool {
     return true;
 }
 
-def checkWinAmountIntegrity(Player[9] players) -> bool {
+def checkWinnerAndChoppersIntegrity(Player[9] players, u32[9] stackSortedPlayers) -> bool {
+    // 1. check stackSortedPlayers
+    for u32 i in 0..8 {
+        assert(players[stackSortedPlayers[i]].a.commited < players[stackSortedPlayers[i + 1]].a.commited
+            || players[stackSortedPlayers[i]].a.commited == players[stackSortedPlayers[i + 1]].a.commited && stackSortedPlayers[i] < stackSortedPlayers[i + 1]);
+    }
+
+    // 2. check stackRank
+    assert(players[stackSortedPlayers[0]].stackRank == 0);
+    for u32 i in 0..8 {
+        assert(players[stackSortedPlayers[i]].stackRank + 1 == players[stackSortedPlayers[i + 1]].stackRank);
+    }
+
+    // 3. check hasShorterWinner
     for u32 i in 0..9 {
-        u32 mut calculatedWinAmount = 0;
+        bool mut hasShorterWinner = false;
+        u32 mut shorterWinner = 0;
+        // j is the index in stackSortedPlayers
+        for u32 j in 0..9 {
+            bool hasNewShorterWinner = players[stackSortedPlayers[j]].strength > players[i].strength && j < players[i].stackRank;
+            hasShorterWinner = hasShorterWinner || hasNewShorterWinner;
+            shorterWinner = if hasNewShorterWinner {
+                j
+            } else {
+                shorterWinner
+            };
+        }
+        assert(players[i].hasShorterWinner == hasShorterWinner);
+        assert(players[i].shorterWinner == shorterWinner);
+        assert(!hasShorterWinner || hasShorterWinner && players[i].winnerAndChoppers[shorterWinner] == 16u32);
+    }
+
+    // 4. check choppers
+    for u32 i in 0..9 {
+        // j is the index in stackSortedPlayers
+        for u32 j in 0..9 {
+            assert(players[i].winnerAndChoppers[j] == if players[stackSortedPlayers[j]].strength < players[i].strength // if lose
+                || players[i].hasShorterWinner && stackSortedPlayers[j] < players[i].shorterWinner // if left of 16
+                || stackSortedPlayers[j] == i { // if is self
+                0
+            } else {
+                if players[i].hasShorterWinner && stackSortedPlayers[j] == players[i].shorterWinner {
+                    16
+                } else {
+                    1 // First set all to 1
+                }
+            });
+        }
+    }
+
+    // 5. check chopJump & lastSettledPot
+    for u32 i in 0..9 {
+        u32 mut lastSettledPotTmp = 0;
+        for u32 j in 0..9 {
+            u32 coveredPot = if j > players[i].stackRank { players[i].coveredPot } else { players[stackSortedPlayers[j]].coveredPot };
+            assert(players[i].chopJump[j] == (players[i].winnerAndChoppers[j] == 1 && lastSettledPotTmp < coveredPot));
+            // Update lastSettledPotTmp
+            assert(players[i].lastSettledPot[j] == if players[i].chopJump[j] {
+                lastSettledPotTmp
+            } else {
+                0
+            });
+            lastSettledPotTmp = if j == players[i].shorterWinner || players[i].chopJump[j] {
+                coveredPot
+            } else {
+                lastSettledPotTmp
+            };
+        }
+    }
+
+    // 6. check chop dividers
+    for u32 i in 0..9 {
+        u32 mut dividerSum = 0;
+
+        for u32 j in 0..9 {
+            u32 invj = 8u32 - j;
+
+            dividerSum = dividerSum + if players[i].winnerAndChoppers[invj] == 1 {
+                1
+            } else {
+                0
+            };
+
+            assert(players[i].chopDivider[j] == if players[i].chopJump[j] {
+                dividerSum
+            } else {
+                0
+            });
+        }
+    }
+
+    return true;
+}
+
+def checkWinAmountIntegrity(Player[9] players, u32[9] stackSortedPlayers) -> bool {
+    for u32 i in 0..9 {
+        u32 mut calculatedWinAmount = players[i].coveredPot;
 
         // Check coverees
         u32 stackRank = players[i].stackRank;
+        // Here j is the rank of stack size
+        for u32 j in 0..9 {
+            u32 chopping = if j > stackRank { players[i].coveredPot } else { players[stackSortedPlayers[j]].coveredPot } - players[i].lastSettledPot[j];
 
+            calculatedWinAmount = calculatedWinAmount - if players[i].hasShorterWinner && 16u32 == players[i].winnerAndChoppers[j] {
+                // if shorter winner exists and j is the shorter winner
+                players[j].coveredPot
+            } else {
+                if players[i].chopDivider[j] > 0 {
+                    // if chop
+                    chopping - chopping / players[i].chopDivider[j]
+                } else {
+                    // win others
+                    0
+                }
+            };
+        }
 
         // Check coverers
         bool mut loseToCoverer = false;

@@ -150,15 +150,39 @@
               "type": "u32"
             },
             {
-              "name": "shorterWinnerStackIndex",
-              "type": "u32"
-            },
-            {
               "name": "hasShorterWinner",
               "type": "bool"
             },
             {
+              "name": "shorterWinner",
+              "type": "u32"
+            },
+            {
               "name": "winnerAndChoppers",
+              "type": "array",
+              "components": {
+                "size": 9,
+                "type": "u32"
+              }
+            },
+            {
+              "name": "chopJump",
+              "type": "array",
+              "components": {
+                "size": 9,
+                "type": "bool"
+              }
+            },
+            {
+              "name": "lastSettledPot",
+              "type": "array",
+              "components": {
+                "size": 9,
+                "type": "u32"
+              }
+            },
+            {
+              "name": "chopDivider",
               "type": "array",
               "components": {
                 "size": 9,

@@ -1,7 +1,7 @@
 import "./hand" as getHand;
 from "./hand" import HandInfo, CommonCards, RevealCard;
 from "./cardUtils" import assertIsSorted7;
-from "./player" import Player, verifySignature, checkCoverIntegrity, checkWinAmountIntegrity, comparePlayer;
+from "./player" import Player, verifySignature, checkCoverIntegrity, checkWinnerAndChoppersIntegrity, checkWinAmountIntegrity, comparePlayer;
 import "./rng" as getCards;
 
 def main(
@@ -11,7 +11,7 @@ def main(
     u32 R2,
     Player[9] players,
     u32[9] handSortedPlayers, // handSortedPlayers[0] is the winning player
-    u32[9] stackSortedPlayers, // stackSortedPlayers[0] is the covering player
+    u32[9] stackSortedPlayers, // stackSortedPlayers[0] is the shortest player
     bool[8] chop,      // chop[i] == true <=> handSortedPlayers[i].strength == handSortedPlayers[i+1].strength
     RevealCard[52] revealCards
 ) -> bool {
@@ -61,8 +61,11 @@ def main(
     // Check integrity of cover info
     bool unused2 = checkCoverIntegrity(players);
 
+    // Check integrity of stack info
+    bool unused3 = checkWinnerAndChoppersIntegrity(players, stackSortedPlayers);
+
     // Check integrity of win amount
-    bool unused3 = checkWinAmountIntegrity(players);
+    bool unused4 = checkWinAmountIntegrity(players, stackSortedPlayers);
 
     return ret;
 }
