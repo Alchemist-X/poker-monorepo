@@ -1,7 +1,7 @@
 import "./hand" as getHand;
 from "./hand" import HandInfo, CommonCards, RevealCard;
 from "./cardUtils" import assertIsSorted7;
-from "./player" import Player, verifySignature, checkCoverIntegrity, checkWinAmountIntegrity;
+from "./player" import Player, verifySignature, checkCoverIntegrity, checkWinAmountIntegrity, comparePlayer;
 import "./rng" as getCards;
 
 def main(
@@ -10,6 +10,9 @@ def main(
     u32 R1,
     u32 R2,
     Player[9] players,
+    u32[9] handSortedPlayers, // handSortedPlayers[0] is the winning player
+    u32[9] stackSortedPlayers, // stackSortedPlayers[0] is the covering player
+    bool[8] chop,      // chop[i] == true <=> handSortedPlayers[i].strength == handSortedPlayers[i+1].strength
     RevealCard[52] revealCards
 ) -> bool {
     bool mut ret = true;
@@ -44,6 +47,16 @@ def main(
             HandInfo{ handType: 0, handStrength: 0 }
         });
     }
+
+    // Check integrity of player relative card strength
+    for u32 i in 0..8 {
+        u32 compareResult = comparePlayer(players[handSortedPlayers[i]], players[handSortedPlayers[i + 1]]);
+        assert(compareResult == 2 && !chop[i] || compareResult == 1 && chop[i]);
+
+        assert(players[handSortedPlayers[i]].strength == players[handSortedPlayers[i + 1]].strength && chop[i]
+            || players[handSortedPlayers[i]].strength == players[handSortedPlayers[i + 1]].strength + 1 && !chop[i]);
+    }
+    assert(players[handSortedPlayers[8]].strength == 0);
 
     // Check integrity of cover info
     bool unused2 = checkCoverIntegrity(players);

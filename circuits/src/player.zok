@@ -29,10 +29,30 @@ struct Player {
 
     // Relative hand strength
     u32 strength;
+    // [0, 9)
+    u32 stackRank;
+    // winner & choppers (when the players is not losing)
+    // If stackRank = 4, then 0, 1, 2, 3 are shorter stacks and 5, 6, 7, 8 are longer stackes
+    // if winnerAndChoppers = [0, 0, 16, 5, "", 4, 4, 4, 4]
+    //                                ^  ^      ^  ^  ^  ^
+    //                             winner|----choppers---|
+    // When calculating the win amount,
+    // shoterWinnerCoveredPot = if hasShorterWinner {
+    //     players[winner].coveredPot)
+    // } else {
+    //     0
+    // }
+    // 1. chop0 = (chopper0.coveredPot - players[winner].coveredPot) / 5
+    // 2. chop1 = (chopper1.coveredPot - chopper0.coveredPot) / 4
+    // winAmount = chop0 + chop1
+    u32 shorterWinnerStackIndex; // 2
+    bool hasShorterWinner;       // true
+    u32[9] winnerAndChoppers;
 
     u32 coveredPot;
-    bool[9] cover;
+    bool[9] cover; // TODO make use of playerIndexToStackRank
     bool[9] covered;
+
     u32 winAmount;
 }
 
@@ -50,22 +70,21 @@ def verifySignature(Player p) -> bool {
 }
 
 def comparePlayer(Player a, Player b) -> u32 {
-    return if !a.seated || !b.seated {
-        if !a.seated {
-            0
-        } else {
+    bool aIn = a.seated && !a.a.fold;
+    bool bIn = b.seated && !b.a.fold;
+
+    return if !aIn || !bIn {
+        if aIn {
             2
-        }
-    } else {
-        if a.a.fold || b.a.fold {
-            if a.a.fold {
+        } else {
+            if bIn {
                 0
             } else {
-                2
+                1
             }
-        } else {
-            compareHand(getHand(a.sorted7Cards, a.hint), getHand(b.sorted7Cards, b.hint))
         }
+    } else {
+        compareHand(getHand(a.sorted7Cards, a.hint), getHand(b.sorted7Cards, b.hint))
     };
 }
 
@@ -100,13 +119,14 @@ def checkWinAmountIntegrity(Player[9] players) -> bool {
         u32 mut calculatedWinAmount = 0;
 
         // Check coverees
+        u32 stackRank = players[i].stackRank;
+
 
         // Check coverers
         bool mut loseToCoverer = false;
         for u32 j in 0..9 {
             loseToCoverer = loseToCoverer || 
-                players[i].covered[j] && comparePlayer(players[i], players[j]) == 0;
-                // TODO preprocess
+                players[i].covered[j] && players[i].strength < players[j].strength;
         }
         calculatedWinAmount = if loseToCoverer {
             0

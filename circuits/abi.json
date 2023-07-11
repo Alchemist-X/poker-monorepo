@@ -1,6 +1,20 @@
 {
   "inputs": [
     {
+      "name": "gameId",
+      "public": true,
+      "type": "u64"
+    },
+    {
+      "name": "commitedR1",
+      "public": true,
+      "type": "array",
+      "components": {
+        "size": 8,
+        "type": "u32"
+      }
+    },
+    {
       "name": "R1",
       "public": true,
       "type": "u32"
@@ -9,13 +23,228 @@
       "name": "R2",
       "public": true,
       "type": "u32"
+    },
+    {
+      "name": "players",
+      "public": true,
+      "type": "array",
+      "components": {
+        "size": 9,
+        "type": "struct",
+        "components": {
+          "name": "Player",
+          "generics": [],
+          "members": [
+            {
+              "name": "seated",
+              "type": "bool"
+            },
+            {
+              "name": "sorted7Cards",
+              "type": "array",
+              "components": {
+                "size": 7,
+                "type": "u32"
+              }
+            },
+            {
+              "name": "hint",
+              "type": "array",
+              "components": {
+                "size": 5,
+                "type": "u32"
+              }
+            },
+            {
+              "name": "handinfo",
+              "type": "struct",
+              "components": {
+                "name": "HandInfo",
+                "generics": [],
+                "members": [
+                  {
+                    "name": "handType",
+                    "type": "u32"
+                  },
+                  {
+                    "name": "handStrength",
+                    "type": "u32"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "a",
+              "type": "struct",
+              "components": {
+                "name": "Action",
+                "generics": [],
+                "members": [
+                  {
+                    "name": "fold",
+                    "type": "bool"
+                  },
+                  {
+                    "name": "commited",
+                    "type": "u32"
+                  },
+                  {
+                    "name": "token",
+                    "type": "u32"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "s",
+              "type": "struct",
+              "components": {
+                "name": "Signature",
+                "generics": [],
+                "members": [
+                  {
+                    "name": "R",
+                    "type": "array",
+                    "components": {
+                      "size": 2,
+                      "type": "field"
+                    }
+                  },
+                  {
+                    "name": "S",
+                    "type": "field"
+                  },
+                  {
+                    "name": "A",
+                    "type": "array",
+                    "components": {
+                      "size": 2,
+                      "type": "field"
+                    }
+                  },
+                  {
+                    "name": "M0",
+                    "type": "array",
+                    "components": {
+                      "size": 8,
+                      "type": "u32"
+                    }
+                  },
+                  {
+                    "name": "M1",
+                    "type": "array",
+                    "components": {
+                      "size": 8,
+                      "type": "u32"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "name": "strength",
+              "type": "u32"
+            },
+            {
+              "name": "stackRank",
+              "type": "u32"
+            },
+            {
+              "name": "shorterWinnerStackIndex",
+              "type": "u32"
+            },
+            {
+              "name": "hasShorterWinner",
+              "type": "bool"
+            },
+            {
+              "name": "winnerAndChoppers",
+              "type": "array",
+              "components": {
+                "size": 9,
+                "type": "u32"
+              }
+            },
+            {
+              "name": "coveredPot",
+              "type": "u32"
+            },
+            {
+              "name": "cover",
+              "type": "array",
+              "components": {
+                "size": 9,
+                "type": "bool"
+              }
+            },
+            {
+              "name": "covered",
+              "type": "array",
+              "components": {
+                "size": 9,
+                "type": "bool"
+              }
+            },
+            {
+              "name": "winAmount",
+              "type": "u32"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "handSortedPlayers",
+      "public": true,
+      "type": "array",
+      "components": {
+        "size": 9,
+        "type": "u32"
+      }
+    },
+    {
+      "name": "stackSortedPlayers",
+      "public": true,
+      "type": "array",
+      "components": {
+        "size": 9,
+        "type": "u32"
+      }
+    },
+    {
+      "name": "chop",
+      "public": true,
+      "type": "array",
+      "components": {
+        "size": 8,
+        "type": "bool"
+      }
+    },
+    {
+      "name": "revealCards",
+      "public": true,
+      "type": "array",
+      "components": {
+        "size": 52,
+        "type": "struct",
+        "components": {
+          "name": "RevealCard",
+          "generics": [],
+          "members": [
+            {
+              "name": "reveal",
+              "type": "bool"
+            },
+            {
+              "name": "card",
+              "type": "u32"
+            }
+          ]
+        }
+      }
     }
   ],
   "output": {
-    "type": "array",
-    "components": {
-      "size": 52,
-      "type": "u32"
-    }
+    "type": "bool"
   }
 }
