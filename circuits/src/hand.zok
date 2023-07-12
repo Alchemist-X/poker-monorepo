@@ -206,7 +206,7 @@ def getFlush(u32[7] hands, u32[5] hint, bool valid) -> u32 {
         assert(!valid || hands[i] % 4 != suit || hands[i] <= hint[0]);
     }
 
-    return hint[0] / 4;
+    return (hint[0] / 4) * 65536u32 + (hint[1] / 4) * 4096 + (hint[2] / 4) * 256 + (hint[3] / 4) * 16 + (hint[4] / 4);
 }
 
 def getStraight(u32[7] hands, u32[5] hint, bool valid) -> u32 {
@@ -266,7 +266,7 @@ def getSet(u32[7] hands, u32[5] hint, bool valid) -> u32 {
         || (hands[1] / 4 == hands[3] / 4 && kicker1 == hands[0] && kicker2 == hands[4])
         || (kicker1 == hands[0] && kicker2 == hands[1]));
 
-    return (kicker1 / 4) * 16u32 + (kicker2 / 4);
+    return ranks[2] * 256u32 + (kicker1 / 4) * 16u32 + (kicker2 / 4);
 }
 
 def getTwoPair(u32[7] hands, u32[5] hint, bool valid) -> u32 {

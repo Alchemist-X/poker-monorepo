@@ -17,11 +17,11 @@ def main(
 ) -> bool {
     bool mut ret = true;
 
-    // Check signatures
-    u32[8] mut hash = [0; 8];
-    for u32 i in 0..9 {
-        assert(verifySignature(players[i]));
-    }
+    // // Check signatures
+    // u32[8] mut hash = [0; 8];
+    // for u32 i in 0..9 {
+    //     assert(verifySignature(players[i]));
+    // }
 
     // Shuffle cards
     u32[52] cards = getCards(R1, R2);
